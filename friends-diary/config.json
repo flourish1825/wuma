@@ -1,0 +1,11 @@
+{
+  "title": "朋友日记",
+  "subtitle": "我们的每一天",
+  "repo": "",
+  "timezone_offset": 8,
+  "members": {
+    "alice": "小艾",
+    "bob": "阿波",
+    "carol": "卡罗"
+  }
+}
