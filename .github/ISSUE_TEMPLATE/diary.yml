@@ -1,0 +1,36 @@
+name: ✍️ 写日记
+description: 记录今天，提交后会自动出现在网站上
+title: "日记"
+labels: ["diary"]
+body:
+  - type: input
+    id: date
+    attributes:
+      label: 日期
+      description: 格式 YYYY-MM-DD，留空则默认为今天（补写以前的日记就填那天的日期）
+      placeholder: "2026-10-05"
+    validations:
+      required: false
+  - type: dropdown
+    id: mood
+    attributes:
+      label: 心情
+      options:
+        - 😊 开心
+        - 😌 平静
+        - 🥳 兴奋
+        - 🤔 思考
+        - 😐 一般
+        - 😴 疲惫
+        - 😢 难过
+        - 😠 生气
+    validations:
+      required: false
+  - type: textarea
+    id: content
+    attributes:
+      label: 日记内容
+      description: 支持 Markdown，可以直接把图片拖进来。
+      placeholder: 今天发生了什么？
+    validations:
+      required: true
