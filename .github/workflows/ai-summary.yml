@@ -1,0 +1,67 @@
+name: AI 周/月/年总结（可选）
+
+# 每天北京时间 00:30 检查：周一总结上周、每月 1 号总结上月、1 月 1 号总结去年。
+# 需要在仓库 Settings → Secrets and variables → Actions 里添加 ANTHROPIC_API_KEY；没有则自动跳过。
+on:
+  schedule:
+    - cron: "30 16 * * *"
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 手动生成：周期类型（留空则按自动规则）
+        type: choice
+        options: ["", week, month, year]
+        default: ""
+      key:
+        description: "周期，如 2026-W40 / 2026-09 / 2026"
+        type: string
+        default: ""
+      force:
+        description: 已存在也重新生成
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: diary-write
+  cancel-in-progress: false
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.run.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: run
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+          SUMMARY_MODEL: ${{ vars.SUMMARY_MODEL }}
+          SUMMARY_KIND: ${{ inputs.kind }}
+          SUMMARY_KEY: ${{ inputs.key }}
+          SUMMARY_FORCE: ${{ inputs.force }}
+        run: |
+          [ -z "$ANTHROPIC_BASE_URL" ] && unset ANTHROPIC_BASE_URL
+          [ -z "$SUMMARY_MODEL" ] && unset SUMMARY_MODEL
+          python scripts/ai_summary.py
+      - name: 提交总结
+        if: steps.run.outputs.changed == 'true'
+        run: |
+          git config user.name "diary-bot"
+          git config user.email "diary-bot@users.noreply.github.com"
+          git add summaries
+          git commit -m "summary: auto"
+          git pull --rebase
+          git push
+
+  deploy:
+    needs: summarize
+    if: needs.summarize.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/build.yml
