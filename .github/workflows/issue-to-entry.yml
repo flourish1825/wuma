@@ -2,7 +2,7 @@ name: 日记入库
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 concurrency:
   group: diary-write
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   add-entry:
-    if: contains(github.event.issue.labels.*.name, 'diary')
+    if: contains(github.event.issue.body, '### 日记内容')
     runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.parse.outputs.status }}
